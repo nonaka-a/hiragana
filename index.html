@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ひらがなれんしゅう</title>
+    <!-- かわいくて見やすいフォント -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --main-color: #FF8BA7;
+            --sub-color: #8BE3FF;
+            --bg-color: #FFF5F7;
+            --text-color: #555;
+            --font-family: 'Kiwi Maru', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: none;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* --- 画面切り替え --- */
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.5s ease;
+        }
+        .screen.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        h1 {
+            color: #FF6B6B;
+            margin: 10px 0;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        /* --- 50音表（縦書き・右から左） --- */
+        .gojuon-container {
+            display: flex;
+            flex-direction: row-reverse; /* 右から左へ列を並べる */
+            gap: 8px;
+            overflow-x: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 100%;
+        }
+
+        .column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .char-btn {
+            width: 45px;
+            height: 45px;
+            background: #fff;
+            border: 2px solid var(--sub-color);
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-family: var(--font-family);
+            color: var(--text-color);
+            cursor: pointer;
+            box-shadow: 0 3px 0 #6BC3DF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.1s;
+        }
+        .char-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+        .char-btn.empty {
+            border: none;
+            background: transparent;
+            box-shadow: none;
+            cursor: default;
+        }
+
+        /* --- 練習画面 --- */
+        .canvas-area {
+            position: relative;
+            background: white;
+            padding: 5px;
+            border-radius: 20px;
+            border: 4px solid var(--main-color);
+            box-shadow: 0 6px 0 #FF6B8B;
+            margin-top: 10px;
+        }
+
+        canvas {
+            display: block;
+            border-radius: 15px;
+            cursor: crosshair;
+        }
+
+        /* 書き順GIFオーバーレイ */
+        #stroke-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        #stroke-overlay img {
+            width: 80%;
+            height: auto;
+            border: 2px solid #333;
+            border-radius: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            font-family: var(--font-family);
+            border: none;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            cursor: pointer;
+        }
+        button:active { transform: translateY(4px); box-shadow: none; }
+
+        .btn-check { background-color: #4CAF50; width: 100px; font-size: 1.1rem; }
+        .btn-reset { background-color: #FF9800; }
+        .btn-anim  { background-color: #E91E63; }
+        .btn-back  { background-color: #607D8B; margin-top: 20px; width: 200px; }
+
+        #result-msg {
+            height: 30px;
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio id="se-success" src="sounds/success.mp3"></audio>
+
+    <!-- 一覧画面 -->
+    <div id="screen-list" class="screen active">
+        <h1>どの もじ を かく？</h1>
+        <div class="gojuon-container" id="gojuon-container">
+            <!-- JSで生成 -->
+        </div>
+    </div>
+
+    <!-- 練習画面 -->
+    <div id="screen-practice" class="screen">
+        <h1 id="practice-title">れんしゅう</h1>
+        
+        <div class="canvas-area">
+            <canvas id="drawingBoard" width="300" height="300"></canvas>
+            
+            <!-- 書き順表示エリア -->
+            <div id="stroke-overlay" onclick="hideStrokeDemo()">
+                <img id="stroke-gif" src="" alt="書き順">
+                <p style="position:absolute; bottom:10px; font-size:0.8rem; color:#333;">タッチで とじる</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-reset" onclick="resetCanvas()">かきなおす</button>
+            <button class="btn-anim" onclick="showStrokeDemo()">かきかた</button>
+            <button class="btn-check" onclick="checkScore()">はんてい</button>
+        </div>
+
+        <div id="result-msg"></div>
+
+        <button class="btn-back" onclick="goBack()">もどる</button>
+    </div>
+
+    <script>
+        // --- データ定義 ---
+        // 縦書き用に列ごとの配列を定義
+        const columns = [
+            ['あ','い','う','え','お'],
+            ['か','き','く','け','こ'],
+            ['さ','し','す','せ','そ'],
+            ['た','ち','つ','て','と'],
+            ['な','に','ぬ','ね','の'],
+            ['は','ひ','ふ','へ','ほ'],
+            ['ま','み','む','め','も'],
+            ['や','','ゆ','','よ'],
+            ['ら','り','る','れ','ろ'],
+            ['わ','','を','','ん']
+        ];
+
+        // GIF取得用のローマ字マッピング
+        const romajiMap = {
+            'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
+            'か':'ka', 'き':'ki', 'く':'ku', 'け':'ke', 'こ':'ko',
+            'さ':'sa', 'し':'shi', 'す':'su', 'せ':'se', 'そ':'so',
+            'た':'ta', 'ち':'chi', 'つ':'tsu', 'て':'te', 'と':'to',
+            'な':'na', 'に':'ni', 'ぬ':'nu', 'ね':'ne', 'の':'no',
+            'は':'ha', 'ひ':'hi', 'ふ':'fu', 'へ':'he', 'ほ':'ho',
+            'ま':'ma', 'み':'mi', 'む':'mu', 'め':'me', 'も':'mo',
+            'や':'ya', 'ゆ':'yu', 'よ':'yo',
+            'ら':'ra', 'り':'ri', 'る':'ru', 'れ':'re', 'ろ':'ro',
+            'わ':'wa', 'を':'wo', 'ん':'n'
+        };
+
+        // --- 変数 ---
+        let currentChar = '';
+        const canvas = document.getElementById('drawingBoard');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        // 判定用裏キャンバス
+        const guideCanvas = document.createElement('canvas');
+        guideCanvas.width = canvas.width;
+        guideCanvas.height = canvas.height;
+        const guideCtx = guideCanvas.getContext('2d', { willReadFrequently: true });
+
+        // 定数
+        const GUIDE_COLOR = "#E0E0E0"; 
+        const BRUSH_COLOR = "#333333";
+        const BRUSH_SIZE = 20;
+
+        // --- 初期化 ---
+        window.onload = function() {
+            createList();
+        };
+
+        // 50音表の生成
+        function createList() {
+            const container = document.getElementById('gojuon-container');
+            
+            columns.forEach(colChars => {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'column';
+                
+                colChars.forEach(char => {
+                    const btn = document.createElement('div');
+                    btn.className = 'char-btn';
+                    if (char === '') {
+                        btn.classList.add('empty');
+                    } else {
+                        btn.textContent = char;
+                        btn.onclick = () => startPractice(char);
+                    }
+                    colDiv.appendChild(btn);
+                });
+                container.appendChild(colDiv);
+            });
+        }
+
+        // --- 画面遷移 ---
+        function startPractice(char) {
+            currentChar = char;
+            document.getElementById('practice-title').textContent = `「${char}」の れんしゅう`;
+            document.getElementById('screen-list').classList.remove('active');
+            document.getElementById('screen-practice').classList.add('active');
+            document.getElementById('result-msg').textContent = "";
+            resetCanvas();
+        }
+
+        function goBack() {
+            document.getElementById('screen-practice').classList.remove('active');
+            document.getElementById('screen-list').classList.add('active');
+            hideStrokeDemo();
+        }
+
+        // --- 描画ロジック ---
+        function resetCanvas() {
+            // 見える方
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.font = "bold 200px 'Kiwi Maru', sans-serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillStyle = GUIDE_COLOR;
+            ctx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 15);
+
+            // 判定用（同じものを描く）
+            guideCtx.clearRect(0, 0, canvas.width, canvas.height);
+            guideCtx.fillStyle = "white";
+            guideCtx.fillRect(0, 0, canvas.width, canvas.height);
+            guideCtx.font = "bold 200px 'Kiwi Maru', sans-serif";
+            guideCtx.textAlign = "center";
+            guideCtx.textBaseline = "middle";
+            guideCtx.fillStyle = GUIDE_COLOR;
+            guideCtx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 15);
+            
+            document.getElementById('result-msg').textContent = "";
+        }
+
+        // --- 書き順（GIFアニメ）表示 ---
+        function showStrokeDemo() {
+            const overlay = document.getElementById('stroke-overlay');
+            const img = document.getElementById('stroke-gif');
+            const romaji = romajiMap[currentChar];
+
+            if (romaji) {
+                // GitHubのひらがなGIFリポジトリを使用
+                img.src = `https://raw.githubusercontent.com/jshier/hiragana-gifs/master/gifs/${romaji}.gif`;
+                overlay.style.display = 'flex';
+            } else {
+                alert("ごめんね、このもじの アニメーションは ないよ。");
+            }
+        }
+
+        function hideStrokeDemo() {
+            document.getElementById('stroke-overlay').style.display = 'none';
+        }
+
+        // --- お絵かき機能 ---
+        let isDrawing = false;
+        let lastX = 0, lastY = 0;
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function startD(e) {
+            e.preventDefault();
+            isDrawing = true;
+            const p = getPos(e);
+            lastX = p.x; lastY = p.y;
+            moveD(e);
+        }
+
+        function moveD(e) {
+            if(!isDrawing) return;
+            e.preventDefault();
+            const p = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(p.x, p.y);
+            ctx.strokeStyle = BRUSH_COLOR;
+            ctx.lineWidth = BRUSH_SIZE;
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            ctx.stroke();
+            lastX = p.x; lastY = p.y;
+        }
+
+        function endD() { isDrawing = false; }
+
+        canvas.addEventListener('mousedown', startD);
+        canvas.addEventListener('mousemove', moveD);
+        canvas.addEventListener('mouseup', endD);
+        canvas.addEventListener('touchstart', startD, {passive:false});
+        canvas.addEventListener('touchmove', moveD, {passive:false});
+        canvas.addEventListener('touchend', endD);
+
+
+        // --- 判定ロジック (合格ライン60点) ---
+        function checkScore() {
+            const w = canvas.width, h = canvas.height;
+            const uData = ctx.getImageData(0,0,w,h).data;
+            const gData = guideCtx.getImageData(0,0,w,h).data;
+
+            let match = 0, guideArea = 0, out = 0;
+
+            for(let i=0; i<uData.length; i+=4) {
+                const isGuide = gData[i] < 240; // グレーか
+                const isUser  = uData[i] < 150; // 黒か
+
+                if(isGuide) {
+                    guideArea++;
+                    if(isUser) match++;
+                } else {
+                    if(isUser) out++;
+                }
+            }
+
+            if(guideArea === 0) return; // エラー回避
+
+            // スコア計算
+            let score = (match / guideArea) * 100;
+            // はみ出しペナルティ
+            let penalty = (out / guideArea) * 40; 
+            
+            let finalScore = Math.round(score - penalty);
+            if(finalScore < 0) finalScore = 0;
+            if(finalScore > 100) finalScore = 100;
+
+            const resDiv = document.getElementById('result-msg');
+            
+            // 合格ライン 60点
+            if(finalScore >= 60) {
+                resDiv.innerHTML = `<span style="color:#E91E63">💮 ${finalScore}てん！ じょうず！</span>`;
+                playSound();
+            } else {
+                resDiv.innerHTML = `<span style="color:#2196F3">💧 ${finalScore}てん。 もうすこし！</span>`;
+            }
+        }
+
+        function playSound() {
+            const audio = document.getElementById('se-success');
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log(e));
+        }
+
+    </script>
+</body>
+</html>
