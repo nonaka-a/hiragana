@@ -233,15 +233,23 @@ p {
 .info-label {
     font-size: 0.85rem;
     color: #888;
-    margin-bottom: 8px;
-    border-bottom: 2px dotted #ccc;
-    padding-bottom: 2px;
+    margin-bottom: 8px; /* 縦書きになるので、これは左マージンの役割に変わる場合がありますが、flex配置なら影響小 */
+    border-left: 2px dotted #ccc; /* 下線ではなく左線（縦書きの下線）に変更 */
+    border-bottom: none;          /* 元の下線を消す */
+    padding-left: 4px;            /* 線の内側の余白 */
+    padding-bottom: 0;
+    
     text-align: center;
-    writing-mode: horizontal-tb;
+    
+    /* ラベルも縦書きに変更 */
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.1em;
 }
 
-/* 縦書き設定 */
+/* 縦書き設定 (値の部分) */
 .info-value {
+    /* ... 既存の設定 ... */
     font-size: 1.3rem;
     font-weight: bold;
     color: var(--text-color);
@@ -252,6 +260,9 @@ p {
     
     flex-grow: 1; 
     letter-spacing: 0.1em;
+    
+    /* ラベルとの間隔調整 */
+    margin-right: 5px; 
 }
 
 .info-value.example {
