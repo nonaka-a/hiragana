@@ -90,7 +90,6 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
-        /* カタカナ選択時は色を変える */
         .mode-btn.active.kata-mode {
             background-color: var(--main-pink);
         }
@@ -128,7 +127,6 @@
             transition: border-color 0.3s;
         }
         
-        /* カタカナモード時の枠色 */
         .gojuon-container.kata-border {
             border-color: var(--main-pink);
             box-shadow: 0 6px 0 #FF6B8B;
@@ -162,11 +160,21 @@
             box-shadow: none;
             background-color: #FFF0F5;
         }
+        
+        /* 空白マス（スタンプ表示用）のスタイル */
         .char-btn.empty {
             border: none;
             background: transparent;
             box-shadow: none;
             cursor: default;
+            overflow: hidden; /* 画像のはみ出し防止 */
+        }
+        .char-btn.empty img {
+            width: 80%;
+            height: 80%;
+            object-fit: contain;
+            opacity: 0.9;
+            pointer-events: none; /* 画像をクリックできないように */
         }
 
         /* --- 練習画面 --- */
@@ -256,7 +264,6 @@
     <div id="screen-list" class="screen active">
         <h1 id="app-title">🎈 ひらがな れんしゅう 🎈</h1>
         
-        <!-- 切り替えスイッチ -->
         <div class="mode-switcher">
             <button id="btn-hira" class="mode-btn active" onclick="switchMode('hira')">ひらがな</button>
             <button id="btn-kata" class="mode-btn" onclick="switchMode('kata')">カタカナ</button>
@@ -288,7 +295,6 @@
 
     <script>
         // --- 設定データ ---
-        // ひらがなデータ
         const hiraColumns = [
             ['あ','い','う','え','お'],
             ['か','き','く','け','こ'],
@@ -302,7 +308,6 @@
             ['わ','','を','','ん']
         ];
 
-        // カタカナデータ
         const kataColumns = [
             ['ア','イ','ウ','エ','オ'],
             ['カ','キ','ク','ケ','コ'],
@@ -316,8 +321,21 @@
             ['ワ','','ヲ','','ン']
         ];
 
+        // 画像ファイル名のリスト
+        const stampImages = [
+            'stamp_mark_blue.png',
+            'stamp_mark_default.png',
+            'stamp_mark_green.png',
+            'stamp_mark_lightblue.png',
+            'stamp_mark_orange.png',
+            'stamp_mark_pink.png',
+            'stamp_mark_purple.png',
+            'stamp_mark_yellow.png',
+            'stamp_mark.png'
+        ];
+
         // --- 変数 ---
-        let currentMode = 'hira'; // 'hira' or 'kata'
+        let currentMode = 'hira';
         let currentChar = '';
         
         const canvas = document.getElementById('drawingBoard');
@@ -341,7 +359,6 @@
         function switchMode(mode) {
             currentMode = mode;
             
-            // ボタンの見た目更新
             const btnHira = document.getElementById('btn-hira');
             const btnKata = document.getElementById('btn-kata');
             const title = document.getElementById('app-title');
@@ -359,16 +376,14 @@
                 container.classList.add('kata-border');
             }
 
-            // リスト再生成
             createList();
         }
 
         // --- リスト生成 ---
         function createList() {
             const container = document.getElementById('gojuon-container');
-            container.innerHTML = ""; // クリア
+            container.innerHTML = ""; 
 
-            // 現在のモードに応じたデータを使用
             const columns = (currentMode === 'hira') ? hiraColumns : kataColumns;
 
             columns.forEach((colChars, index) => {
@@ -379,14 +394,23 @@
                     btn.className = 'char-btn';
                     
                     const colors = ['#FF8BA7', '#FFB74D', '#FFF176', '#AED581', '#8BE3FF', '#BA68C8', '#FF8A65', '#90A4AE', '#DCE775', '#4DB6AC'];
-                    if (char !== '') {
+                    
+                    if (char === '') {
+                        // 空白マスの場合の処理：ランダム画像を配置
+                        btn.classList.add('empty');
+                        
+                        // ランダムに画像を選択
+                        const randomImg = stampImages[Math.floor(Math.random() * stampImages.length)];
+                        
+                        const img = document.createElement('img');
+                        img.src = `images/${randomImg}`;
+                        img.alt = "stamp";
+                        btn.appendChild(img);
+
+                    } else {
+                        // 通常の文字ボタンの処理
                         btn.style.borderColor = colors[index % colors.length];
                         btn.style.boxShadow = `0 3px 0 ${colors[index % colors.length]}`;
-                    }
-
-                    if (char === '') {
-                        btn.classList.add('empty');
-                    } else {
                         btn.textContent = char;
                         btn.onclick = () => startPractice(char);
                     }
@@ -417,7 +441,6 @@
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // 文字サイズ230px, 中央配置
             ctx.font = "bold 230px 'Noto Sans JP', sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
