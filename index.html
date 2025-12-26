@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>ひらがなれんしゅう</title>
+    <title>もじれんしゅう</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -43,7 +43,7 @@
 
         h1 {
             color: #FF6B6B;
-            margin: 15px 0;
+            margin: 10px 0;
             font-size: 1.6rem;
             text-align: center;
             text-shadow: 2px 2px 0 #FFF;
@@ -58,6 +58,41 @@
             background: rgba(255,255,255,0.8);
             padding: 2px 8px;
             border-radius: 10px;
+        }
+
+        /* --- モード切り替えスイッチ --- */
+        .mode-switcher {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.6);
+            padding: 5px;
+            border-radius: 30px;
+        }
+
+        .mode-btn {
+            border: none;
+            padding: 8px 20px;
+            font-size: 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+            background: #eee;
+            transition: 0.2s;
+            box-shadow: none;
+        }
+
+        .mode-btn.active {
+            background-color: var(--main-blue);
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* カタカナ選択時は色を変える */
+        .mode-btn.active.kata-mode {
+            background-color: var(--main-pink);
         }
 
         /* --- 画面切り替え --- */
@@ -90,6 +125,13 @@
             border: 4px solid var(--main-blue);
             box-shadow: 0 6px 0 #6BC3DF;
             max-width: 100%;
+            transition: border-color 0.3s;
+        }
+        
+        /* カタカナモード時の枠色 */
+        .gojuon-container.kata-border {
+            border-color: var(--main-pink);
+            box-shadow: 0 6px 0 #FF6B8B;
         }
 
         .column {
@@ -151,47 +193,9 @@
             background-color: #FFF;
         }
 
-        /* 書き順GIFオーバーレイ */
-        #stroke-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.95);
-            border-radius: 12px;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-        }
-        #stroke-overlay img {
-            width: 250px;
-            height: 250px;
-            border: 4px solid var(--main-blue);
-            border-radius: 15px;
-            background: white;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            object-fit: contain;
-        }
-        
-        /* エラー・ローディング表示用 */
-        .overlay-msg {
-            position: absolute;
-            font-size: 1rem;
-            color: var(--text-color);
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-        }
-        .overlay-msg.error {
-            color: #FF6B6B;
-        }
-
         .controls {
             display: flex;
-            gap: 12px;
+            gap: 20px;
             margin-top: 20px;
             flex-wrap: wrap;
             justify-content: center;
@@ -200,14 +204,14 @@
         button {
             font-family: var(--font-family);
             border: none;
-            padding: 12px 20px;
+            padding: 12px 25px;
             font-size: 1.1rem;
             border-radius: 50px;
             color: white;
             font-weight: bold;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
             cursor: pointer;
-            min-width: 110px;
+            min-width: 130px;
             transition: transform 0.1s;
         }
         button:active { transform: translateY(4px) !important; box-shadow: none !important; }
@@ -220,15 +224,11 @@
             background-color: #FFA726; 
             box-shadow: 0 4px 0 #F57C00;
         }
-        .btn-anim  { 
-            background-color: #42A5F5; 
-            box-shadow: 0 4px 0 #1976D2;
-        }
         .btn-back  { 
             background-color: #AB47BC; 
             box-shadow: 0 4px 0 #7B1FA2;
             margin-top: 25px; 
-            width: 160px; 
+            width: 180px; 
         }
 
         #result-msg {
@@ -254,7 +254,14 @@
 
     <!-- 一覧画面 -->
     <div id="screen-list" class="screen active">
-        <h1>🎈 ひらがな れんしゅう 🎈</h1>
+        <h1 id="app-title">🎈 ひらがな れんしゅう 🎈</h1>
+        
+        <!-- 切り替えスイッチ -->
+        <div class="mode-switcher">
+            <button id="btn-hira" class="mode-btn active" onclick="switchMode('hira')">ひらがな</button>
+            <button id="btn-kata" class="mode-btn" onclick="switchMode('kata')">カタカナ</button>
+        </div>
+
         <p>れんしゅうする もじを えらんでね！</p>
         <div class="gojuon-container" id="gojuon-container">
             <!-- JSで生成 -->
@@ -267,23 +274,10 @@
         
         <div class="canvas-area">
             <canvas id="drawingBoard" width="300" height="300"></canvas>
-            
-            <!-- 書き順表示エリア -->
-            <div id="stroke-overlay" onclick="hideStrokeDemo()">
-                <!-- メッセージ表示用 -->
-                <div id="overlay-text" class="overlay-msg"></div>
-                
-                <img id="stroke-gif" src="" alt="" onload="onGifLoad()" onerror="onGifError()">
-                
-                <p style="position: absolute; bottom: 10px; font-size:1rem; color:var(--text-color); font-weight:bold; margin:0;">
-                    タップして もどる
-                </p>
-            </div>
         </div>
 
         <div class="controls">
             <button class="btn-reset" onclick="resetCanvas()">🎨 かきなおす</button>
-            <button class="btn-anim" onclick="showStrokeDemo()">👀 かきかた</button>
             <button class="btn-check" onclick="checkScore()">💯 はんてい</button>
         </div>
 
@@ -293,8 +287,9 @@
     </div>
 
     <script>
-        // --- 設定 ---
-        const columns = [
+        // --- 設定データ ---
+        // ひらがなデータ
+        const hiraColumns = [
             ['あ','い','う','え','お'],
             ['か','き','く','け','こ'],
             ['さ','し','す','せ','そ'],
@@ -307,21 +302,24 @@
             ['わ','','を','','ん']
         ];
 
-        const romajiMap = {
-            'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
-            'か':'ka', 'き':'ki', 'く':'ku', 'け':'ke', 'こ':'ko',
-            'さ':'sa', 'し':'shi', 'す':'su', 'せ':'se', 'そ':'so',
-            'た':'ta', 'ち':'chi', 'つ':'tsu', 'て':'te', 'と':'to',
-            'な':'na', 'に':'ni', 'ぬ':'nu', 'ね':'ne', 'の':'no',
-            'は':'ha', 'ひ':'hi', 'ふ':'fu', 'へ':'he', 'ほ':'ho',
-            'ま':'ma', 'み':'mi', 'む':'mu', 'め':'me', 'も':'mo',
-            'や':'ya', 'ゆ':'yu', 'よ':'yo',
-            'ら':'ra', 'り':'ri', 'る':'ru', 'れ':'re', 'ろ':'ro',
-            'わ':'wa', 'を':'wo', 'ん':'n'
-        };
+        // カタカナデータ
+        const kataColumns = [
+            ['ア','イ','ウ','エ','オ'],
+            ['カ','キ','ク','ケ','コ'],
+            ['サ','シ','ス','セ','ソ'],
+            ['タ','チ','ツ','テ','ト'],
+            ['ナ','ニ','ヌ','ネ','ノ'],
+            ['ハ','ヒ','フ','ヘ','ホ'],
+            ['マ','ミ','ム','メ','モ'],
+            ['ヤ','','ユ','','ヨ'],
+            ['ラ','リ','ル','レ','ロ'],
+            ['ワ','','ヲ','','ン']
+        ];
 
         // --- 変数 ---
+        let currentMode = 'hira'; // 'hira' or 'kata'
         let currentChar = '';
+        
         const canvas = document.getElementById('drawingBoard');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
@@ -339,8 +337,40 @@
             createList();
         };
 
+        // --- モード切り替え ---
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // ボタンの見た目更新
+            const btnHira = document.getElementById('btn-hira');
+            const btnKata = document.getElementById('btn-kata');
+            const title = document.getElementById('app-title');
+            const container = document.getElementById('gojuon-container');
+
+            if (mode === 'hira') {
+                btnHira.classList.add('active');
+                btnKata.classList.remove('active', 'kata-mode');
+                title.textContent = "🎈 ひらがな れんしゅう 🎈";
+                container.classList.remove('kata-border');
+            } else {
+                btnHira.classList.remove('active');
+                btnKata.classList.add('active', 'kata-mode');
+                title.textContent = "🚀 カタカナ れんしゅう 🚀";
+                container.classList.add('kata-border');
+            }
+
+            // リスト再生成
+            createList();
+        }
+
+        // --- リスト生成 ---
         function createList() {
             const container = document.getElementById('gojuon-container');
+            container.innerHTML = ""; // クリア
+
+            // 現在のモードに応じたデータを使用
+            const columns = (currentMode === 'hira') ? hiraColumns : kataColumns;
+
             columns.forEach((colChars, index) => {
                 const colDiv = document.createElement('div');
                 colDiv.className = 'column';
@@ -379,7 +409,6 @@
         function goBack() {
             document.getElementById('screen-practice').classList.remove('active');
             document.getElementById('screen-list').classList.add('active');
-            hideStrokeDemo();
         }
 
         // --- 描画ロジック ---
@@ -388,74 +417,23 @@
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            ctx.font = "bold 200px 'Noto Sans JP', sans-serif";
+            // 文字サイズ230px, 中央配置
+            ctx.font = "bold 230px 'Noto Sans JP', sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillStyle = GUIDE_COLOR;
-            ctx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 18);
+            ctx.fillText(currentChar, canvas.width / 2, canvas.height / 2);
 
             guideCtx.clearRect(0, 0, canvas.width, canvas.height);
             guideCtx.fillStyle = "white";
             guideCtx.fillRect(0, 0, canvas.width, canvas.height);
-            guideCtx.font = "bold 200px 'Noto Sans JP', sans-serif";
+            guideCtx.font = "bold 230px 'Noto Sans JP', sans-serif";
             guideCtx.textAlign = "center";
             guideCtx.textBaseline = "middle";
             guideCtx.fillStyle = GUIDE_COLOR;
-            guideCtx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 18);
+            guideCtx.fillText(currentChar, canvas.width / 2, canvas.height / 2);
             
             document.getElementById('result-msg').innerHTML = "";
-        }
-
-        // --- 書き順（GIFアニメ）表示 ---
-        function showStrokeDemo() {
-            const overlay = document.getElementById('stroke-overlay');
-            const img = document.getElementById('stroke-gif');
-            const msg = document.getElementById('overlay-text');
-            
-            const romaji = romajiMap[currentChar];
-
-            if (romaji) {
-                // UIリセット
-                msg.style.display = 'block';
-                msg.textContent = "よみこみ中...";
-                msg.className = "overlay-msg"; // クラスリセット
-                
-                img.style.display = 'none'; // 読み込み完了まで隠す
-                img.src = ""; // 一旦クリア
-                
-                // 画像URLセット (GitHub Raw)
-                img.src = `https://raw.githubusercontent.com/jshier/hiragana-gifs/master/gifs/${romaji}.gif`;
-                
-                overlay.style.display = 'flex';
-            } else {
-                // 画像定義がない場合
-                overlay.style.display = 'flex';
-                msg.textContent = "このもじの かきかたは ありません";
-                msg.className = "overlay-msg error";
-                img.style.display = 'none';
-            }
-        }
-
-        function onGifLoad() {
-            // 読み込み成功
-            document.getElementById('overlay-text').style.display = 'none';
-            document.getElementById('stroke-gif').style.display = 'block';
-        }
-
-        function onGifError() {
-            // 読み込み失敗（ここでのalertを削除し、画面内表示に変更）
-            const msg = document.getElementById('overlay-text');
-            const img = document.getElementById('stroke-gif');
-            
-            img.style.display = 'none';
-            msg.style.display = 'block';
-            msg.textContent = "ごめんね、がぞうが みつかりませんでした";
-            msg.className = "overlay-msg error";
-        }
-
-        function hideStrokeDemo() {
-            document.getElementById('stroke-overlay').style.display = 'none';
-            document.getElementById('stroke-gif').src = ""; 
         }
 
         // --- お絵かき機能 ---
