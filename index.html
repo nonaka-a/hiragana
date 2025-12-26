@@ -4,23 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>ひらがなれんしゅう</title>
-    <!-- かわいくて見やすいフォント -->
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kiwi+Maru:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --main-color: #FF8BA7;
-            --sub-color: #8BE3FF;
-            --bg-color: #FFF5F7;
-            --text-color: #555;
-            --font-family: 'Kiwi Maru', sans-serif;
+            /* ポップなカラーパレット */
+            --bg-color: #FFF9E6;      /* 薄い黄色 */
+            --bg-dot: #FFE4B5;        /* ドット色 */
+            --main-pink: #FF8BA7;
+            --main-blue: #8BE3FF;
+            --main-green: #98EE99;
+            --main-yellow: #FFEB3B;
+            --accent-orange: #FFB74D;
+            --text-color: #5D4037;    /* 茶色っぽい黒 */
+            
+            --font-family: 'Noto Sans JP', sans-serif;
         }
 
         body {
             font-family: var(--font-family);
             background-color: var(--bg-color);
+            background-image: radial-gradient(var(--bg-dot) 20%, transparent 20%), radial-gradient(var(--bg-dot) 20%, transparent 20%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
             color: var(--text-color);
             margin: 0;
             display: flex;
@@ -32,6 +41,25 @@
             box-sizing: border-box;
         }
 
+        h1 {
+            color: #FF6B6B;
+            margin: 15px 0;
+            font-size: 1.6rem;
+            text-align: center;
+            text-shadow: 2px 2px 0 #FFF;
+            background: rgba(255,255,255,0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 2px solid #FF8BA7;
+        }
+
+        p {
+            margin-top: 0;
+            background: rgba(255,255,255,0.8);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
         /* --- 画面切り替え --- */
         .screen {
             display: none;
@@ -39,54 +67,49 @@
             height: 100%;
             flex-direction: column;
             align-items: center;
-            animation: fadeIn 0.5s ease;
+            animation: fadeIn 0.4s ease-out;
         }
         .screen.active {
             display: flex;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
 
-        h1 {
-            color: #FF6B6B;
-            margin: 10px 0;
-            font-size: 1.5rem;
-            text-align: center;
-        }
-
-        /* --- 50音表（縦書き・右から左） --- */
+        /* --- 50音表 --- */
         .gojuon-container {
             display: flex;
-            flex-direction: row-reverse; /* 右から左へ列を並べる */
-            gap: 8px;
+            flex-direction: row-reverse;
+            gap: 6px;
             overflow-x: auto;
-            padding: 10px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            border: 4px solid var(--main-blue);
+            box-shadow: 0 6px 0 #6BC3DF;
             max-width: 100%;
         }
 
         .column {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .char-btn {
-            width: 45px;
-            height: 45px;
+            width: 44px;
+            height: 44px;
             background: #fff;
-            border: 2px solid var(--sub-color);
-            border-radius: 10px;
-            font-size: 1.2rem;
+            border: 2px solid var(--main-pink);
+            border-radius: 12px;
+            font-size: 1.3rem;
             font-family: var(--font-family);
+            font-weight: 700;
             color: var(--text-color);
             cursor: pointer;
-            box-shadow: 0 3px 0 #6BC3DF;
+            box-shadow: 0 3px 0 #FF6B8B;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -95,6 +118,7 @@
         .char-btn:active {
             transform: translateY(3px);
             box-shadow: none;
+            background-color: #FFF0F5;
         }
         .char-btn.empty {
             border: none;
@@ -107,17 +131,24 @@
         .canvas-area {
             position: relative;
             background: white;
-            padding: 5px;
+            padding: 8px;
             border-radius: 20px;
-            border: 4px solid var(--main-color);
-            box-shadow: 0 6px 0 #FF6B8B;
+            border: 5px solid var(--accent-orange);
+            box-shadow: 0 6px 0 #E65100;
             margin-top: 10px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
 
         canvas {
             display: block;
-            border-radius: 15px;
+            border-radius: 12px;
             cursor: crosshair;
+            background-color: #FFF;
         }
 
         /* 書き順GIFオーバーレイ */
@@ -127,24 +158,41 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(255,255,255,0.9);
-            border-radius: 15px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
             display: none;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 10;
         }
         #stroke-overlay img {
-            width: 80%;
-            height: auto;
-            border: 2px solid #333;
-            border-radius: 10px;
+            width: 250px;
+            height: 250px;
+            border: 4px solid var(--main-blue);
+            border-radius: 15px;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            object-fit: contain;
+        }
+        
+        /* エラー・ローディング表示用 */
+        .overlay-msg {
+            position: absolute;
+            font-size: 1rem;
+            color: var(--text-color);
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+        }
+        .overlay-msg.error {
+            color: #FF6B6B;
         }
 
         .controls {
             display: flex;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 12px;
+            margin-top: 20px;
             flex-wrap: wrap;
             justify-content: center;
         }
@@ -152,27 +200,50 @@
         button {
             font-family: var(--font-family);
             border: none;
-            padding: 10px 15px;
-            font-size: 1rem;
+            padding: 12px 20px;
+            font-size: 1.1rem;
             border-radius: 50px;
             color: white;
             font-weight: bold;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
             cursor: pointer;
+            min-width: 110px;
+            transition: transform 0.1s;
         }
-        button:active { transform: translateY(4px); box-shadow: none; }
+        button:active { transform: translateY(4px) !important; box-shadow: none !important; }
 
-        .btn-check { background-color: #4CAF50; width: 100px; font-size: 1.1rem; }
-        .btn-reset { background-color: #FF9800; }
-        .btn-anim  { background-color: #E91E63; }
-        .btn-back  { background-color: #607D8B; margin-top: 20px; width: 200px; }
+        .btn-check { 
+            background-color: #66BB6A; 
+            box-shadow: 0 4px 0 #388E3C;
+        }
+        .btn-reset { 
+            background-color: #FFA726; 
+            box-shadow: 0 4px 0 #F57C00;
+        }
+        .btn-anim  { 
+            background-color: #42A5F5; 
+            box-shadow: 0 4px 0 #1976D2;
+        }
+        .btn-back  { 
+            background-color: #AB47BC; 
+            box-shadow: 0 4px 0 #7B1FA2;
+            margin-top: 25px; 
+            width: 160px; 
+        }
 
         #result-msg {
-            height: 30px;
+            height: 45px;
             margin-top: 15px;
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             font-weight: bold;
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.9);
+            border-radius: 10px;
+            padding: 0 20px;
+            min-width: 200px;
         }
 
     </style>
@@ -183,7 +254,8 @@
 
     <!-- 一覧画面 -->
     <div id="screen-list" class="screen active">
-        <h1>どの もじ を かく？</h1>
+        <h1>🎈 ひらがな れんしゅう 🎈</h1>
+        <p>れんしゅうする もじを えらんでね！</p>
         <div class="gojuon-container" id="gojuon-container">
             <!-- JSで生成 -->
         </div>
@@ -198,25 +270,30 @@
             
             <!-- 書き順表示エリア -->
             <div id="stroke-overlay" onclick="hideStrokeDemo()">
-                <img id="stroke-gif" src="" alt="書き順">
-                <p style="position:absolute; bottom:10px; font-size:0.8rem; color:#333;">タッチで とじる</p>
+                <!-- メッセージ表示用 -->
+                <div id="overlay-text" class="overlay-msg"></div>
+                
+                <img id="stroke-gif" src="" alt="" onload="onGifLoad()" onerror="onGifError()">
+                
+                <p style="position: absolute; bottom: 10px; font-size:1rem; color:var(--text-color); font-weight:bold; margin:0;">
+                    タップして もどる
+                </p>
             </div>
         </div>
 
         <div class="controls">
-            <button class="btn-reset" onclick="resetCanvas()">かきなおす</button>
-            <button class="btn-anim" onclick="showStrokeDemo()">かきかた</button>
-            <button class="btn-check" onclick="checkScore()">はんてい</button>
+            <button class="btn-reset" onclick="resetCanvas()">🎨 かきなおす</button>
+            <button class="btn-anim" onclick="showStrokeDemo()">👀 かきかた</button>
+            <button class="btn-check" onclick="checkScore()">💯 はんてい</button>
         </div>
 
         <div id="result-msg"></div>
 
-        <button class="btn-back" onclick="goBack()">もどる</button>
+        <button class="btn-back" onclick="goBack()">↩ いちらんへ</button>
     </div>
 
     <script>
-        // --- データ定義 ---
-        // 縦書き用に列ごとの配列を定義
+        // --- 設定 ---
         const columns = [
             ['あ','い','う','え','お'],
             ['か','き','く','け','こ'],
@@ -230,7 +307,6 @@
             ['わ','','を','','ん']
         ];
 
-        // GIF取得用のローマ字マッピング
         const romajiMap = {
             'あ':'a', 'い':'i', 'う':'u', 'え':'e', 'お':'o',
             'か':'ka', 'き':'ki', 'く':'ku', 'け':'ke', 'こ':'ko',
@@ -249,33 +325,35 @@
         const canvas = document.getElementById('drawingBoard');
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
         
-        // 判定用裏キャンバス
         const guideCanvas = document.createElement('canvas');
         guideCanvas.width = canvas.width;
         guideCanvas.height = canvas.height;
         const guideCtx = guideCanvas.getContext('2d', { willReadFrequently: true });
 
-        // 定数
-        const GUIDE_COLOR = "#E0E0E0"; 
+        const GUIDE_COLOR = "#DDDDDD"; 
         const BRUSH_COLOR = "#333333";
-        const BRUSH_SIZE = 20;
+        const BRUSH_SIZE = 24; 
 
         // --- 初期化 ---
         window.onload = function() {
             createList();
         };
 
-        // 50音表の生成
         function createList() {
             const container = document.getElementById('gojuon-container');
-            
-            columns.forEach(colChars => {
+            columns.forEach((colChars, index) => {
                 const colDiv = document.createElement('div');
                 colDiv.className = 'column';
-                
                 colChars.forEach(char => {
                     const btn = document.createElement('div');
                     btn.className = 'char-btn';
+                    
+                    const colors = ['#FF8BA7', '#FFB74D', '#FFF176', '#AED581', '#8BE3FF', '#BA68C8', '#FF8A65', '#90A4AE', '#DCE775', '#4DB6AC'];
+                    if (char !== '') {
+                        btn.style.borderColor = colors[index % colors.length];
+                        btn.style.boxShadow = `0 3px 0 ${colors[index % colors.length]}`;
+                    }
+
                     if (char === '') {
                         btn.classList.add('empty');
                     } else {
@@ -294,7 +372,7 @@
             document.getElementById('practice-title').textContent = `「${char}」の れんしゅう`;
             document.getElementById('screen-list').classList.remove('active');
             document.getElementById('screen-practice').classList.add('active');
-            document.getElementById('result-msg').textContent = "";
+            document.getElementById('result-msg').innerHTML = ""; 
             resetCanvas();
         }
 
@@ -306,47 +384,78 @@
 
         // --- 描画ロジック ---
         function resetCanvas() {
-            // 見える方
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            ctx.font = "bold 200px 'Kiwi Maru', sans-serif";
+            ctx.font = "bold 200px 'Noto Sans JP', sans-serif";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillStyle = GUIDE_COLOR;
-            ctx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 15);
+            ctx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 18);
 
-            // 判定用（同じものを描く）
             guideCtx.clearRect(0, 0, canvas.width, canvas.height);
             guideCtx.fillStyle = "white";
             guideCtx.fillRect(0, 0, canvas.width, canvas.height);
-            guideCtx.font = "bold 200px 'Kiwi Maru', sans-serif";
+            guideCtx.font = "bold 200px 'Noto Sans JP', sans-serif";
             guideCtx.textAlign = "center";
             guideCtx.textBaseline = "middle";
             guideCtx.fillStyle = GUIDE_COLOR;
-            guideCtx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 15);
+            guideCtx.fillText(currentChar, canvas.width / 2, canvas.height / 2 + 18);
             
-            document.getElementById('result-msg').textContent = "";
+            document.getElementById('result-msg').innerHTML = "";
         }
 
         // --- 書き順（GIFアニメ）表示 ---
         function showStrokeDemo() {
             const overlay = document.getElementById('stroke-overlay');
             const img = document.getElementById('stroke-gif');
+            const msg = document.getElementById('overlay-text');
+            
             const romaji = romajiMap[currentChar];
 
             if (romaji) {
-                // GitHubのひらがなGIFリポジトリを使用
+                // UIリセット
+                msg.style.display = 'block';
+                msg.textContent = "よみこみ中...";
+                msg.className = "overlay-msg"; // クラスリセット
+                
+                img.style.display = 'none'; // 読み込み完了まで隠す
+                img.src = ""; // 一旦クリア
+                
+                // 画像URLセット (GitHub Raw)
                 img.src = `https://raw.githubusercontent.com/jshier/hiragana-gifs/master/gifs/${romaji}.gif`;
+                
                 overlay.style.display = 'flex';
             } else {
-                alert("ごめんね、このもじの アニメーションは ないよ。");
+                // 画像定義がない場合
+                overlay.style.display = 'flex';
+                msg.textContent = "このもじの かきかたは ありません";
+                msg.className = "overlay-msg error";
+                img.style.display = 'none';
             }
+        }
+
+        function onGifLoad() {
+            // 読み込み成功
+            document.getElementById('overlay-text').style.display = 'none';
+            document.getElementById('stroke-gif').style.display = 'block';
+        }
+
+        function onGifError() {
+            // 読み込み失敗（ここでのalertを削除し、画面内表示に変更）
+            const msg = document.getElementById('overlay-text');
+            const img = document.getElementById('stroke-gif');
+            
+            img.style.display = 'none';
+            msg.style.display = 'block';
+            msg.textContent = "ごめんね、がぞうが みつかりませんでした";
+            msg.className = "overlay-msg error";
         }
 
         function hideStrokeDemo() {
             document.getElementById('stroke-overlay').style.display = 'none';
+            document.getElementById('stroke-gif').src = ""; 
         }
 
         // --- お絵かき機能 ---
@@ -388,12 +497,12 @@
         canvas.addEventListener('mousedown', startD);
         canvas.addEventListener('mousemove', moveD);
         canvas.addEventListener('mouseup', endD);
+        canvas.addEventListener('mouseout', endD);
         canvas.addEventListener('touchstart', startD, {passive:false});
         canvas.addEventListener('touchmove', moveD, {passive:false});
         canvas.addEventListener('touchend', endD);
 
-
-        // --- 判定ロジック (合格ライン60点) ---
+        // --- 判定ロジック ---
         function checkScore() {
             const w = canvas.width, h = canvas.height;
             const uData = ctx.getImageData(0,0,w,h).data;
@@ -402,8 +511,8 @@
             let match = 0, guideArea = 0, out = 0;
 
             for(let i=0; i<uData.length; i+=4) {
-                const isGuide = gData[i] < 240; // グレーか
-                const isUser  = uData[i] < 150; // 黒か
+                const isGuide = gData[i] < 240; 
+                const isUser  = uData[i] < 150;
 
                 if(isGuide) {
                     guideArea++;
@@ -413,11 +522,9 @@
                 }
             }
 
-            if(guideArea === 0) return; // エラー回避
+            if(guideArea === 0) return;
 
-            // スコア計算
             let score = (match / guideArea) * 100;
-            // はみ出しペナルティ
             let penalty = (out / guideArea) * 40; 
             
             let finalScore = Math.round(score - penalty);
@@ -426,19 +533,18 @@
 
             const resDiv = document.getElementById('result-msg');
             
-            // 合格ライン 60点
             if(finalScore >= 60) {
                 resDiv.innerHTML = `<span style="color:#E91E63">💮 ${finalScore}てん！ じょうず！</span>`;
                 playSound();
             } else {
-                resDiv.innerHTML = `<span style="color:#2196F3">💧 ${finalScore}てん。 もうすこし！</span>`;
+                resDiv.innerHTML = `<span style="color:#1976D2">💧 ${finalScore}てん。 もうすこし！</span>`;
             }
         }
 
         function playSound() {
             const audio = document.getElementById('se-success');
             audio.currentTime = 0;
-            audio.play().catch(e => console.log(e));
+            audio.play().catch(e => console.log("SE再生エラー: " + e));
         }
 
     </script>
