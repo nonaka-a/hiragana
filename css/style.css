@@ -23,7 +23,7 @@ body {
     align-items: center;
     min-height: 100vh;
     touch-action: none;
-    /* padding: 10px; から変更 */
+    /* 上部にスペースを確保 */
     padding: 40px 10px 10px 10px;
     box-sizing: border-box;
 }
@@ -393,14 +393,17 @@ button:active { transform: translateY(4px) !important; box-shadow: none !importa
     background: #fafafa;
 }
 
-/* --- ツールバー (追加) --- */
+/* --- ツールバー (変更) --- */
 .toolbar {
     position: fixed;
+    /* 右側中央に配置 */
     right: 20px;
-    bottom: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px; /* 間隔を広げて押しやすく */
     z-index: 1000;
 }
 
