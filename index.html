@@ -41,7 +41,6 @@
 
     <!-- 練習画面 -->
     <div id="screen-practice" class="screen">
-        <h1 id="practice-title">れんしゅう</h1>
         
         <div class="practice-wrapper">
             <!-- 左パネル：読み -->
@@ -85,6 +84,14 @@
             <div id="anim-container"></div>
             <button class="btn-close-modal" onclick="closeAnimModal()">とじる</button>
         </div>
+    </div>
+
+    <!-- ツールバー (追加) -->
+    <div class="toolbar">
+        <button onclick="zoomIn()" title="大きくする">➕</button>
+        <button onclick="zoomOut()" title="小さくする">➖</button>
+        <button id="btn-fullscreen" onclick="toggleFullscreen()" title="全画面">⛶</button>
+        <button id="btn-sound" onclick="toggleSound()" title="音のオンオフ">🔊</button>
     </div>
 
     <!-- データとメインロジックの読み込み -->

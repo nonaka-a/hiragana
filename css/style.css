@@ -23,7 +23,8 @@ body {
     align-items: center;
     min-height: 100vh;
     touch-action: none;
-    padding: 10px;
+    /* padding: 10px; から変更 */
+    padding: 40px 10px 10px 10px;
     box-sizing: border-box;
 }
 
@@ -390,4 +391,39 @@ button:active { transform: translateY(4px) !important; box-shadow: none !importa
     border: 2px dashed #ccc;
     border-radius: 10px;
     background: #fafafa;
+}
+
+/* --- ツールバー (追加) --- */
+.toolbar {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.toolbar button {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    border-radius: 50%;
+    background: #fff;
+    color: #555;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    padding: 0;
+    margin: 0;
+    line-height: 1;
+    cursor: pointer;
+    border: 2px solid #eee;
+    transition: transform 0.1s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar button:active {
+    transform: scale(0.95) !important;
+    background-color: #f0f0f0;
 }

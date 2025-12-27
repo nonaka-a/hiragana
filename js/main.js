@@ -2,6 +2,8 @@
 let currentMode = 'hira';
 let currentChar = '';
 let dmakInstance = null;
+let currentScale = 1.0;
+let isMuted = false;
 
 const canvas = document.getElementById('drawingBoard');
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -74,8 +76,8 @@ function createList() {
         // 漢字モード：文字列を5文字ずつのチャンクに分割してカラム化する
         let charString = "";
         if(currentMode === 'kanji1') charString = kanji1_list;
-else if(currentMode === 'kanji2') charString = kanji2_list;
-else if(currentMode === 'kanji3') charString = kanji3_list;
+        else if(currentMode === 'kanji2') charString = kanji2_list;
+        else if(currentMode === 'kanji3') charString = kanji3_list;
 
         const chars = charString.split('');
         const chunkSize = 5; 
@@ -120,7 +122,7 @@ function createCharBtn(char, index) {
 // --- 画面遷移 ---
 function startPractice(char) {
     currentChar = char;
-    document.getElementById('practice-title').textContent = `「${char}」の れんしゅう`;
+    
     document.getElementById('screen-list').classList.remove('active');
     document.getElementById('screen-practice').classList.add('active');
     document.getElementById('result-msg').innerHTML = ""; 
@@ -184,7 +186,15 @@ function getPos(e) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
+    
+    // ズーム対応: キャンバスの表示サイズと実サイズの比率を計算して座標を補正
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    return { 
+        x: (clientX - rect.left) * scaleX, 
+        y: (clientY - rect.top) * scaleY 
+    };
 }
 
 function startD(e) {
@@ -260,6 +270,7 @@ function checkScore() {
 }
 
 function playSound() {
+    if (isMuted) return;
     const audio = document.getElementById('se-success');
     audio.currentTime = 0;
     audio.play().catch(e => console.log("SE再生エラー: " + e));
@@ -294,4 +305,53 @@ function closeAnimModal() {
         dmakInstance = null;
     }
     document.getElementById('anim-container').innerHTML = "";
+}
+
+// --- ツールバー機能 ---
+
+function applyZoom() {
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(el => {
+        el.style.transform = `scale(${currentScale})`;
+        el.style.transformOrigin = 'top center';
+        el.style.transition = 'transform 0.2s ease-out';
+    });
+}
+
+function zoomIn() {
+    if (currentScale < 2.0) {
+        currentScale += 0.1;
+        applyZoom();
+    }
+}
+
+function zoomOut() {
+    if (currentScale > 0.5) {
+        currentScale -= 0.1;
+        applyZoom();
+    }
+}
+
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
+}
+
+function toggleSound() {
+    isMuted = !isMuted;
+    const btn = document.getElementById('btn-sound');
+    if (isMuted) {
+        btn.textContent = '🔇';
+        btn.style.backgroundColor = '#eee';
+    } else {
+        btn.textContent = '🔊';
+        btn.style.backgroundColor = '#fff';
+    }
 }
